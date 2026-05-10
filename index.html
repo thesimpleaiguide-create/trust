@@ -37,7 +37,7 @@
         .drop-zone {
             border: 2px dashed #cbd5e1;
             background: #f8fafc;
-            min-height: 220px; /* Reduced from 280px */
+            min-height: 220px;
         }
         .drop-zone.drag-over {
             border-color: #3b82f6;
@@ -66,10 +66,10 @@
         .select-none { user-select: none; }
     </style>
 </head>
-<body class="font-main p-2 md:p-4"> <!-- Reduced padding -->
+<body class="font-main p-2 md:p-4">
 
     <div class="max-w-4xl mx-auto">
-        <!-- Header - More compact -->
+        <!-- Header -->
         <div class="bg-[#1e293b] text-white p-4 rounded-t-2xl text-center shadow-xl border-b border-slate-700">
             <h1 class="text-lg md:text-xl font-bold mb-1">Drag each tile to where it belongs.</h1>
             <p class="text-slate-400 italic text-sm">Does this action <span class="text-white font-bold">build</span> trust or <span class="text-white font-bold">break</span> it?</p>
@@ -78,7 +78,7 @@
         <!-- Main Board -->
         <div class="bg-white border-x border-b border-slate-200 rounded-b-2xl p-4 shadow-md">
             
-            <!-- Active Card Area - More compact -->
+            <!-- Active Card Area -->
             <div id="source-container" class="flex flex-col items-center mb-6">
                 <div id="active-card-slot" class="w-full max-w-md h-40 flex items-center justify-center border-2 border-slate-100 rounded-2xl bg-slate-50/50 relative p-4">
                     <!-- Cards will be injected here -->
@@ -88,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- 2 Target Zones - Compacted -->
+            <!-- 2 Target Zones -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Breaks Trust -->
                 <div id="zone-break" class="drop-zone p-4 rounded-2xl flex flex-col items-center text-center transition-all group" ondrop="handleDrop(event, 'break')" ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
@@ -116,7 +116,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
             </div>
             <h2 class="text-2xl font-black text-slate-800 mb-1">Activity Complete</h2>
-            <p class="text-slate-600 text-sm max-w-md mx-auto mb-4">Trust is built through consistent validation and destroyed by dismissal.</p>
+            <p class="text-slate-600 text-sm max-w-md mx-auto mb-4">Trust is built through consistent validation and destroyed by dismissal. Your choices shape the patient journey.</p>
             <button onclick="location.reload()" class="px-6 py-2 bg-[#1e293b] text-white font-bold rounded-xl hover:bg-slate-700 transition shadow-lg">
                 Restart Exercise
             </button>
@@ -142,14 +142,56 @@
 
     <script>
         const scenarios = [
-            { id: 1, target: 'break', text: "Reminding the patient of the practice policy before acknowledging how they feel.", feedback: "Lead with empathy first. Policies explain the 'what', but acknowledgment addresses the 'who'." },
-            { id: 2, target: 'break', text: "Informing the patient that other patients are also waiting.", feedback: "This minimizes the individual's experience. Every patient needs to feel seen as an individual, not a number." },
-            { id: 3, target: 'break', text: "Telling the patient to 'calm down'.", feedback: "This is a command, not a connection. It rarely de-escalates and often makes the patient feel unheard." },
-            { id: 4, target: 'break', text: "Ignoring the underlying emotion.", feedback: "Missing the emotion means missing the patient's primary concern. The emotion is the message." },
-            { id: 5, target: 'build', text: "Validating the patient's fear or frustration.", feedback: "Validation is not agreement; it is acknowledgment. It signals that you are an ally." },
-            { id: 6, target: 'build', text: "Inviting them to share more information.", feedback: "Curiosity builds bridges. Asking 'tell me more' moves the focus from the problem to the person." },
-            { id: 7, target: 'build', text: "Aligning with the patient against the problem.", feedback: "Positioning yourself beside the patient turns a conflict into a collaborative effort." },
-            { id: 8, target: 'build', text: "Using an empathetic tone.", feedback: "How you speak communicates safety. An empathetic tone lowers defenses and invites trust." }
+            // Breaks Trust
+            { 
+                id: 1, 
+                target: 'break', 
+                text: "Reminding the patient of the practice policy before acknowledging how they feel.", 
+                feedback: "I know it can feel safer to lean on policy when things get tense, but leading with the 'what' before acknowledging the 'who' can make patients feel processed rather than heard. In our training, we talk about responding to the need beneath the behavior. By acknowledging the feeling first, you create the pause needed for de-escalation. You're doing a great job reflecting on this balance, and that awareness will make your next interaction even stronger." 
+            },
+            { 
+                id: 2, 
+                target: 'break', 
+                text: "Informing the patient that other patients are also waiting.", 
+                feedback: "It's so tempting to explain the pressure the practice is under when you can see the waiting room filling up. While it’s factually true, the patient in front of you often hears this as their own distress being minimized. We want to move from being the judge of their time to the detective of their distress. Your willingness to look at how this lands shows real commitment to your role, and remember, when a patient feels seen, their defenses start to lower." 
+            },
+            { 
+                id: 3, 
+                target: 'break', 
+                text: "Telling the patient to 'calm down'.", 
+                feedback: "When someone is shouting, our natural instinct is to tell them to stop so we can finally help them. However, 'calm down' often feels like a command that challenges their autonomy, which can trigger more fight-or-flight. We’ve learned that a calm, steady voice of our own is the best biological signal of safety we can offer. Reflecting on these 'bait' moments is how we grow into skilled managers of conflict, and you’re building the tools to stay steady even when things get loud." 
+            },
+            { 
+                id: 4, 
+                target: 'break', 
+                text: "Ignoring the underlying emotion.", 
+                feedback: "I understand how easy it is to focus purely on logistics when you're busy, but ignoring the underlying emotion usually means we miss the real message the patient is sending. As we discussed, the emotion is often the condition, while the behavior is just the symptom. Your focus on catching these emotional cues is exactly what compassionate care is about. You're learning to hear what isn't being said, and that is a true professional skill." 
+            },
+            // Builds Trust
+            { 
+                id: 5, 
+                target: 'build', 
+                text: "Validating the patient's fear or frustration.", 
+                feedback: "It’s wonderful to see you prioritizing validation; it truly is the heart of de-escalation. By acknowledging their fear, you’re telling the patient that they are safe and that you are an ally, not an opponent. This is Miller's Law in action—finding the world in which their distress makes sense. Your empathetic approach here is exactly what builds long-term trust in the practice, so keep trusting those instincts to connect before you correct." 
+            },
+            { 
+                id: 6, 
+                target: 'build', 
+                text: "Inviting them to share more information.", 
+                feedback: "I love how you’re using curiosity as a bridge here. Asking 'tell me more' shifts the dynamic from a conflict over a problem to a conversation between two people. This is the 'detective' mindset we strive for, looking for the hidden drivers behind the surface behavior. Your professionalism shines through when you invite the patient to feel found rather than just processed. This small shift in wording makes a massive difference in how care is delivered." 
+            },
+            { 
+                id: 7, 
+                target: 'build', 
+                text: "Aligning with the patient against the problem.", 
+                feedback: "Positioning yourself beside the patient is a powerful move that immediately changes the energy of an interaction. Instead of it being 'you vs. them,' it becomes 'us vs. the problem,' which is incredibly de-escalating. You're applying the core principle that we are only responsible for how we respond, and you’re responding with partnership. This level of reflection shows you're becoming a very steady hand at the front desk, and that partnership is where real solutions are found." 
+            },
+            { 
+                id: 8, 
+                target: 'build', 
+                text: "Using an empathetic tone.", 
+                feedback: "You've caught onto something vital—our tone communicates safety to a patient's nervous system before our words even register. Using an empathetic tone is a direct physiological intervention that can help move a patient out of fight-or-flight. It’s not always easy to maintain your calm when under pressure, so recognizing its value is a huge win. Your dedication to this 'human' element of your role is inspiring, and you're creating a welcoming environment, one interaction at a time." 
+            }
         ];
 
         let currentDeck = [...scenarios].sort(() => Math.random() - 0.5);
