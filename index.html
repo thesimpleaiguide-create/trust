@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trust: Build vs Break</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .draggable-card {
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            touch-action: none;
+            user-select: none;
+        }
+        .draggable-card:active {
+            cursor: grabbing;
+        }
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            background: #f8fafc;
+            min-height: 280px;
+        }
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+        .modal-overlay {
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(6px);
+        }
+        .font-main { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        .touch-dragging {
+            opacity: 0.9;
+            pointer-events: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .select-none { user-select: none; }
+    </style>
+</head>
+<body class="bg-slate-50 font-main p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-[#1e293b] text-white p-6 rounded-t-2xl text-center shadow-xl border-b border-slate-700">
+            <h1 class="text-xl md:text-2xl font-bold mb-2">Drag each tile to where it belongs.</h1>
+            <p class="text-slate-400 italic">Does this action <span class="text-white font-bold">build</span> trust or <span class="text-white font-bold">break</span> it?</p>
+        </div>
+
+        <!-- Main Board -->
+        <div class="bg-white border-x border-b border-slate-200 rounded-b-2xl p-6 shadow-md">
+            
+            <!-- Active Card Area -->
+            <div id="source-container" class="flex flex-col items-center mb-10">
+                <div id="active-card-slot" class="w-full max-w-md h-56 flex items-center justify-center border-2 border-slate-100 rounded-2xl bg-slate-50/50 relative p-6">
+                    <!-- Cards will be injected here -->
+                </div>
+                <div id="deck-counter" class="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Tiles Remaining: <span id="cards-left">8</span>
+                </div>
+            </div>
+
+            <!-- 2 Target Zones -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Breaks Trust -->
+                <div id="zone-break" class="drop-zone p-8 rounded-2xl flex flex-col items-center text-center transition-all group" ondrop="handleDrop(event, 'break')" ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
+                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </div>
+                    <div class="text-slate-800 font-bold text-xl mb-1">Breaks Trust</div>
+                    <div id="count-break" class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-xs font-bold uppercase">0 Items</div>
+                </div>
+
+                <!-- Builds Trust -->
+                <div id="zone-build" class="drop-zone p-8 rounded-2xl flex flex-col items-center text-center transition-all group" ondrop="handleDrop(event, 'build')" ondragover="allowDrop(event)" ondragleave="handleDragLeave(event)">
+                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div class="text-slate-800 font-bold text-xl mb-1">Builds Trust</div>
+                    <div id="count-build" class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-xs font-bold uppercase">0 Items</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completion UI -->
+        <div id="completion-ui" class="hidden mt-8 text-center p-10 bg-white border border-slate-200 rounded-2xl shadow-xl">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h2 class="text-3xl font-black text-slate-800 mb-2">Activity Complete</h2>
+            <p class="text-slate-600 max-w-md mx-auto mb-6">Trust is built through consistent validation and destroyed by dismissal. Your choices shape the patient journey.</p>
+            <button onclick="location.reload()" class="px-8 py-3 bg-[#1e293b] text-white font-bold rounded-xl hover:bg-slate-700 transition shadow-lg">
+                Restart Exercise
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="feedback-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden transform transition-all select-none">
+            <div class="p-8 md:p-10">
+                <div class="flex items-center gap-4 mb-6">
+                    <div id="modal-icon-bg" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg id="modal-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
+                    </div>
+                    <h3 id="modal-title" class="text-xl font-black text-slate-900 tracking-tight"></h3>
+                </div>
+                
+                <p id="modal-bold-text" class="text-slate-800 font-bold text-lg leading-relaxed mb-6"></p>
+                
+                <div id="modal-quote-box" class="bg-white border-l-4 p-5 rounded-r-xl">
+                    <p id="modal-italic-text" class="text-slate-600 italic text-base leading-relaxed font-medium"></p>
+                </div>
+
+                <button onclick="closeModal()" class="mt-8 w-full py-4 bg-[#1e293b] text-white font-bold rounded-2xl hover:bg-slate-800 transition shadow-lg">
+                    Next Action
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = [
+            // Breaks Trust
+            { id: 1, target: 'break', text: "Reminding the patient of the practice policy before acknowledging how they feel.", feedback: "Lead with empathy first. Policies explain the 'what', but acknowledgment addresses the 'who'." },
+            { id: 2, target: 'break', text: "Informing the patient that other patients are also waiting.", feedback: "This minimizes the individual's experience. Every patient needs to feel seen as an individual, not a number." },
+            { id: 3, target: 'break', text: "Telling the patient to 'calm down'.", feedback: "This is a command, not a connection. It rarely de-escalates and often makes the patient feel unheard." },
+            { id: 4, target: 'break', text: "Ignoring the underlying emotion.", feedback: "Missing the emotion means missing the patient's primary concern. The emotion is the message." },
+            // Builds Trust
+            { id: 5, target: 'build', text: "Validating the patient's fear or frustration.", feedback: "Validation is not agreement; it is acknowledgment. It signals that you are an ally." },
+            { id: 6, target: 'build', text: "Inviting them to share more information.", feedback: "Curiosity builds bridges. Asking 'tell me more' moves the focus from the problem to the person." },
+            { id: 7, target: 'build', text: "Aligning with the patient against the problem.", feedback: "Positioning yourself beside the patient turns a conflict into a collaborative effort." },
+            { id: 8, target: 'build', text: "Using an empathetic tone.", feedback: "How you speak communicates safety. An empathetic tone lowers defenses and invites trust." }
+        ];
+
+        let currentDeck = [...scenarios].sort(() => Math.random() - 0.5);
+        let counts = { break: 0, build: 0 };
+        let activeCard = null;
+
+        function renderNextCard() {
+            const container = document.getElementById('active-card-slot');
+            const counterLabel = document.getElementById('cards-left');
+            container.innerHTML = '';
+            counterLabel.innerText = currentDeck.length;
+            
+            if (currentDeck.length === 0) {
+                container.innerHTML = '<div class="text-slate-400 font-medium">Activity Complete</div>';
+                document.getElementById('deck-counter').classList.add('hidden');
+                document.getElementById('completion-ui').classList.remove('hidden');
+                return;
+            }
+
+            activeCard = currentDeck[0];
+            const cardEl = document.createElement('div');
+            cardEl.className = 'draggable-card w-full h-full bg-white shadow-xl border border-slate-200 rounded-2xl p-6 flex items-center justify-center text-center font-bold text-slate-800 text-lg md:text-xl transition-all duration-300';
+            cardEl.draggable = true;
+            cardEl.innerText = activeCard.text;
+            cardEl.id = "card-" + activeCard.id;
+            
+            cardEl.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', activeCard.id);
+                cardEl.classList.add('opacity-40');
+            });
+            
+            cardEl.addEventListener('dragend', (e) => {
+                cardEl.classList.remove('opacity-40');
+            });
+
+            cardEl.addEventListener('touchstart', handleTouchStart, {passive: false});
+            cardEl.addEventListener('touchmove', handleTouchMove, {passive: false});
+            cardEl.addEventListener('touchend', handleTouchEnd, {passive: false});
+
+            container.appendChild(cardEl);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(ev, zoneType) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            processChoice(zoneType);
+        }
+
+        function processChoice(zoneType) {
+            if (zoneType === activeCard.target) {
+                counts[zoneType]++;
+                document.getElementById(`count-${zoneType}`).innerText = `${counts[zoneType]} Item${counts[zoneType] > 1 ? 's' : ''}`;
+                showFeedback(activeCard, zoneType);
+                currentDeck.shift();
+                renderNextCard();
+            } else {
+                const slot = document.getElementById('active-card-slot');
+                slot.classList.add('shake');
+                setTimeout(() => slot.classList.remove('shake'), 400);
+            }
+        }
+
+        function showFeedback(card, zoneType) {
+            const title = document.getElementById('modal-title');
+            const iconBg = document.getElementById('modal-icon-bg');
+            const icon = document.getElementById('modal-icon');
+            const quoteBox = document.getElementById('modal-quote-box');
+
+            document.getElementById('modal-bold-text').innerText = card.text;
+            document.getElementById('modal-italic-text').innerText = `"${card.feedback}"`;
+
+            if (zoneType === 'build') {
+                title.innerText = "Building Trust";
+                iconBg.className = "w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0";
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+                quoteBox.className = "bg-white border-l-4 border-green-500 p-5 rounded-r-xl";
+            } else {
+                title.innerText = "Breaking Trust";
+                iconBg.className = "w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0";
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                quoteBox.className = "bg-white border-l-4 border-red-500 p-5 rounded-r-xl";
+            }
+
+            document.getElementById('feedback-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+        }
+
+        let touchStartX, touchStartY;
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            e.currentTarget.classList.add('touch-dragging');
+        }
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const card = e.currentTarget;
+            card.style.position = 'fixed';
+            card.style.width = '85vw';
+            card.style.maxWidth = '360px';
+            card.style.left = (touch.clientX - (parseInt(card.style.width)/2 || 180)) + 'px';
+            card.style.top = (touch.clientY - 60) + 'px';
+            card.style.zIndex = 1000;
+        }
+        function handleTouchEnd(e) {
+            const card = e.currentTarget;
+            const touch = e.changedTouches[0];
+            const zones = ['break', 'build'];
+            let dropped = false;
+
+            card.classList.remove('touch-dragging');
+            card.style.position = 'static';
+            card.style.zIndex = 1;
+            card.style.width = '100%';
+
+            for(let z of zones) {
+                const rect = document.getElementById(`zone-${z}`).getBoundingClientRect();
+                if (touch.clientX > rect.left && touch.clientX < rect.right && touch.clientY > rect.top && touch.clientY < rect.bottom) {
+                    processChoice(z);
+                    dropped = true;
+                    break;
+                }
+            }
+
+            if (!dropped) renderNextCard(); 
+        }
+
+        window.onload = renderNextCard;
+    </script>
+</body>
+</html>
