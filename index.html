@@ -104,24 +104,17 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal with Dynamic Heading -->
     <div id="feedback-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
         <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden transform transition-all select-none">
             <div class="p-8 md:p-10">
-                <div class="flex items-center gap-4 mb-6">
-                    <div id="modal-icon-bg" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg id="modal-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"></svg>
-                    </div>
-                    <h3 id="modal-title" class="text-xl font-black text-slate-900 tracking-tight"></h3>
-                </div>
-                
-                <p id="modal-bold-text" class="text-slate-800 font-bold text-lg leading-relaxed mb-6"></p>
+                <h3 id="modal-heading" class="text-xl font-black mb-6"></h3>
                 
                 <div id="modal-quote-box" class="bg-white border-l-4 p-5 rounded-r-xl">
                     <p id="modal-italic-text" class="text-slate-600 italic text-base leading-relaxed font-medium"></p>
                 </div>
 
-                <button onclick="closeModal()" class="mt-8 w-full py-4 bg-[#1e293b] text-white font-bold rounded-2xl hover:bg-slate-800 transition shadow-lg">
+                <button onclick="closeModal()" class="mt-8 w-full py-3 bg-[#1e293b] text-white font-bold rounded-2xl hover:bg-slate-800 transition shadow-lg">
                     Next Action
                 </button>
             </div>
@@ -212,23 +205,18 @@
         }
 
         function showFeedback(card, zoneType) {
-            const title = document.getElementById('modal-title');
-            const iconBg = document.getElementById('modal-icon-bg');
-            const icon = document.getElementById('modal-icon');
+            const heading = document.getElementById('modal-heading');
             const quoteBox = document.getElementById('modal-quote-box');
 
-            document.getElementById('modal-bold-text').innerText = card.text;
             document.getElementById('modal-italic-text').innerText = `"${card.feedback}"`;
 
             if (zoneType === 'build') {
-                title.innerText = "Building Trust";
-                iconBg.className = "w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0";
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+                heading.innerText = "Builds Trust";
+                heading.className = "text-xl font-black mb-6 text-green-600";
                 quoteBox.className = "bg-white border-l-4 border-green-500 p-5 rounded-r-xl";
             } else {
-                title.innerText = "Breaking Trust";
-                iconBg.className = "w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0";
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                heading.innerText = "Breaks Trust";
+                heading.className = "text-xl font-black mb-6 text-red-600";
                 quoteBox.className = "bg-white border-l-4 border-red-500 p-5 rounded-r-xl";
             }
 
